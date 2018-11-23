@@ -1,0 +1,12 @@
+/*
+Make the document fill the whole viewport, this overrides any weird defaults that browsers might have.
+*/
+#mapid {
+	height: 500px;
+	width: 75%;
+	margin: auto;
+}
+
+body {
+	background: rgb(215, 215, 215);
+}
