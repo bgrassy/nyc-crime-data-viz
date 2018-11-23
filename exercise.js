@@ -47,30 +47,40 @@ function whenDocumentLoaded(action) {
  function toColor(str) {
  	if (str == "FELONY") {
  		return redIcon;
- 	} else if (str == "VIOLATION") {
+ 	} else if (str == "MISDEMEANOR") {
  		return orangeIcon;
- 	} else { // misdemeanor
+ 	} else { // violation
  		return yellowIcon;
  	}
  }
 
  class ScatterPlot {
 	/* your code here */
-    constructor(id, rows) {
+    constructor(id, fel_counts, vio_counts, mis_counts) {
         this.svg = d3.select("#" + id);
-        let data = new Array();
+        let fel_data = new Array();
+        let vio_data = new Array();
+        let mis_data = new Array();
+        let total_data = new Array();
         let i;
         for (i = 0; i < 24; i++) {
-        	data.push({'x' : i, 'y': rows[i]});
+        	fel_data.push({'x' : i, 'y': fel_counts[i]});
+        	vio_data.push({'x' : i, 'y': vio_counts[i]});
+        	mis_data.push({'x' : i, 'y': mis_counts[i]});
+        	total_data.push({'x' : i, 'y': (fel_counts[i] + vio_counts[i] + mis_counts[i])});
         }
+        console.log(fel_data);
+        console.log(vio_data);
+        console.log(mis_data);
+        console.log(total_data);
         let x = d3.scaleLinear()
-            .domain([d3.min(data, function(d) { return d.x; }), 
-                     d3.max(data, function(d) { return d.x; })])
+            .domain([d3.min(total_data, function(d) { return d.x; }), 
+                     d3.max(total_data, function(d) { return d.x; })])
             .range([30, 500]);
 
         let y = d3.scaleLinear()
             //.domain([d3.min(data, function(d) { return d.y; }), 
-            .domain([d3.max(data, function(d) { return d.y; }), 0])
+            .domain([d3.max(total_data, function(d) { return d.y; }), 0])
             .range([0, 300]);
 
         let lineFunction = d3.line()
@@ -83,9 +93,50 @@ function whenDocumentLoaded(action) {
 
         this.svg.append("g").attr("transform", "translate(0, 300)").call(x_axis);
         this.svg.append("g").attr("transform", "translate(30, 0)").call(y_axis);
+        
+        this.svg.append("text")
+		        .attr("x", 250)             
+		        .attr("y", -20)
+		        .attr("text-anchor", "middle")  
+		        .style("font-size", "16px") 
+		        .style("text-decoration", "underline")  
+		        .text("Time of Day vs Crimes Committed");
 
-        this.svg.append("path").attr("d", lineFunction(data))
-        		.attr("stroke", "blue")
+		// x-axis label
+		this.svg.append("text")
+		        .attr("x", 250)             
+		        .attr("y", 330)
+		        .attr("text-anchor", "middle")  
+		        .style("font-size", "12px") 
+		        .text("Hour of the Day");
+
+		// y-axis label
+		this.svg.append("text")
+		        .attr("x", -150)             
+		        .attr("y", 0)
+		        .attr("text-anchor", "middle")  
+		        .style("font-size", "12px") 
+		        .attr("transform", "rotate(-90)")
+		        .text("Number of Crimes Committed");
+
+        this.svg.append("path").attr("d", lineFunction(fel_data))
+        		.attr("stroke", "red")
+        		.attr("stroke-width", 2.5)
+        		.attr("fill", "none");
+
+		this.svg.append("path").attr("d", lineFunction(mis_data))
+        		.attr("stroke", "orange")
+        		.attr("stroke-width", 2.5)
+        		.attr("fill", "none");
+
+        this.svg.append("path").attr("d", lineFunction(vio_data))
+        		.attr("stroke", "yellow")
+        		.attr("stroke-width", 2.5)
+        		.attr("fill", "none");
+
+		this.svg.append("path").attr("d", lineFunction(total_data))
+        		.attr("stroke", "black")
+        		.attr("stroke-width", 2.5)
         		.attr("fill", "none");
     }
 
@@ -99,21 +150,25 @@ function getCSVData() {
 	let misdemeanors = L.layerGroup();
 
 	d3.csv("felonies.csv").then(function(data) {
-	  counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; })
+	  let fel_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
+	  let vio_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
+	  let mis_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
 	  data.forEach(function(d) {
 	  	  d.Date = new Date(d.Date);
-	  	  counts[d.Date.getHours()]++;
 		  if (d.LAW_CAT_CD == "FELONY") {
 		    L.marker([+d.Latitude, +d.Longitude], { icon: toColor(d.LAW_CAT_CD) }).bindPopup(d.OFNS_DESC).addTo(felonies);
-		  } else if (d.LAW_CAT_CD == "VIOLATION") {
-		  	L.marker([+d.Latitude, +d.Longitude], { icon: toColor(d.LAW_CAT_CD) }).bindPopup(d.OFNS_DESC).addTo(violations);
-		  } else {
+		    fel_counts[d.Date.getHours()]++;
+		  } else if (d.LAW_CAT_CD == "MISDEMEANOR") {
 		  	L.marker([+d.Latitude, +d.Longitude], { icon: toColor(d.LAW_CAT_CD) }).bindPopup(d.OFNS_DESC).addTo(misdemeanors);
+		  	mis_counts[d.Date.getHours()]++;
+		  } else {
+		  	L.marker([+d.Latitude, +d.Longitude], { icon: toColor(d.LAW_CAT_CD) }).bindPopup(d.OFNS_DESC).addTo(violations);
+		  	vio_counts[d.Date.getHours()]++;
 		  }
 	  }); 
 
 	  console.log("yeet");
-	  const plot = new ScatterPlot("plot", counts);
+	  const plot = new ScatterPlot("plot", fel_counts, vio_counts, mis_counts);
 	});
 	return [felonies, violations, misdemeanors];
 }
@@ -141,8 +196,8 @@ function plotData() {
 
 	var markers = {
 		"Felonies": felonies,
-		"Violations": violations,
-		"Misdemeanors": misdemeanors
+		"Misdemeanors": misdemeanors,
+		"Violations": violations
 	}
 	L.control.layers(null, markers).addTo(mymap);
 }
