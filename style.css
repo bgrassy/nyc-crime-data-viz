@@ -5,15 +5,20 @@ Make the document fill the whole viewport, this overrides any weird defaults tha
 	height: 500px;
 	width: 75%;
 	margin: auto;
+	margin-right: 0;
+}
+#div {
+	inline: block;
 }
 
 body {
+	text-align: center;
 	background: rgb(215, 215, 215);
+	font-family: Helvetica, sans-serif;
 }
 
 #plot_div {
 	background: grey;
-	width: auto;
 	margin: auto;
 	margin-top: 10px;
 	text-align: center;
@@ -23,4 +28,20 @@ body {
 	margin: 40px;
 	width: 33%;
 	height: 360px;
+}
+
+ul {
+	list-style-type: none;
+}
+
+#input {
+	text-align: right;
+	float: right;
+	width: auto;
+}
+
+#container {
+	width: 80%;
+	margin: auto;
+	background: rgb(215, 215, 215);
 }
