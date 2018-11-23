@@ -54,20 +54,66 @@ function whenDocumentLoaded(action) {
  	}
  }
 
+ class ScatterPlot {
+	/* your code here */
+    constructor(id, rows) {
+        this.svg = d3.select("#" + id);
+        let data = new Array();
+        let i;
+        for (i = 0; i < 24; i++) {
+        	data.push({'x' : i, 'y': rows[i]});
+        }
+        let x = d3.scaleLinear()
+            .domain([d3.min(data, function(d) { return d.x; }), 
+                     d3.max(data, function(d) { return d.x; })])
+            .range([30, 500]);
+
+        let y = d3.scaleLinear()
+            //.domain([d3.min(data, function(d) { return d.y; }), 
+            .domain([d3.max(data, function(d) { return d.y; }), 0])
+            .range([0, 300]);
+
+        let lineFunction = d3.line()
+                         .x(function(d) { return x(d.x); })
+                         .y(function(d) { return y(d.y); })
+                         .curve(d3.curveLinear);
+
+        var x_axis = d3.axisBottom().scale(x);
+        var y_axis = d3.axisLeft().scale(y);
+
+        this.svg.append("g").attr("transform", "translate(0, 300)").call(x_axis);
+        this.svg.append("g").attr("transform", "translate(30, 0)").call(y_axis);
+
+        this.svg.append("path").attr("d", lineFunction(data))
+        		.attr("stroke", "blue")
+        		.attr("fill", "none");
+    }
+
+    
+}
+
 
 function getCSVData() {
 	let felonies = L.layerGroup();
 	let violations = L.layerGroup();
 	let misdemeanors = L.layerGroup();
 
-	d3.csv("felonies.csv", function(data) {
-	  if (data.LAW_CAT_CD == "FELONY") {
-	    L.marker([+data.Latitude, +data.Longitude], { icon: toColor(data.LAW_CAT_CD) }).bindPopup(data.OFNS_DESC).addTo(felonies);
-	  } else if (data.LAW_CAT_CD == "VIOLATION") {
-	  	L.marker([+data.Latitude, +data.Longitude], { icon: toColor(data.LAW_CAT_CD) }).bindPopup(data.OFNS_DESC).addTo(violations);
-	  } else {
-	  	L.marker([+data.Latitude, +data.Longitude], { icon: toColor(data.LAW_CAT_CD) }).bindPopup(data.OFNS_DESC).addTo(misdemeanors);
-	  }
+	d3.csv("felonies.csv").then(function(data) {
+	  counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; })
+	  data.forEach(function(d) {
+	  	  d.Date = new Date(d.Date);
+	  	  counts[d.Date.getHours()]++;
+		  if (d.LAW_CAT_CD == "FELONY") {
+		    L.marker([+d.Latitude, +d.Longitude], { icon: toColor(d.LAW_CAT_CD) }).bindPopup(d.OFNS_DESC).addTo(felonies);
+		  } else if (d.LAW_CAT_CD == "VIOLATION") {
+		  	L.marker([+d.Latitude, +d.Longitude], { icon: toColor(d.LAW_CAT_CD) }).bindPopup(d.OFNS_DESC).addTo(violations);
+		  } else {
+		  	L.marker([+d.Latitude, +d.Longitude], { icon: toColor(d.LAW_CAT_CD) }).bindPopup(d.OFNS_DESC).addTo(misdemeanors);
+		  }
+	  }); 
+
+	  console.log("yeet");
+	  const plot = new ScatterPlot("plot", counts);
 	});
 	return [felonies, violations, misdemeanors];
 }
@@ -78,7 +124,7 @@ function plotData() {
 	let felonies = data[0];
 	let violations = data[1];
 	let misdemeanors = data[2];
-	console.log(data[0]);
+	let rows = data[3];
 
 	var mymap = L.map('mapid').setView([40.7128, -73.9], 12);
 

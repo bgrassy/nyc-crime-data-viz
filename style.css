@@ -10,3 +10,17 @@ Make the document fill the whole viewport, this overrides any weird defaults tha
 body {
 	background: rgb(215, 215, 215);
 }
+
+#plot_div {
+	background: grey;
+	width: auto;
+	margin: auto;
+	margin-top: 10px;
+	text-align: center;
+}
+
+#plot {
+	margin: 40px;
+	width: 33%;
+	height: 330px;
+}
