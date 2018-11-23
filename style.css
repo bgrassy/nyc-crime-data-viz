@@ -24,10 +24,14 @@ body {
 	text-align: center;
 }
 
-#plot {
+svg {
 	margin: 40px;
 	width: 33%;
 	height: 360px;
+}
+
+#barplot {
+	width: 40%;
 }
 
 ul {

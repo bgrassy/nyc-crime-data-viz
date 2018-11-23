@@ -58,6 +58,7 @@ function toColor(str) {
  	/* your code here */
  	constructor(id, fel_counts, vio_counts, mis_counts) {
  		this.svg = d3.select("#" + id);
+
  		let fel_data = new Array();
  		let vio_data = new Array();
  		let mis_data = new Array();
@@ -71,73 +72,143 @@ function toColor(str) {
  		}
 
  		let x = d3.scaleLinear()
- 		.domain([d3.min(total_data, function(d) { return d.x; }), 
- 			d3.max(total_data, function(d) { return d.x; })])
- 		.range([30, 500]);
+	 		.domain([d3.min(total_data, function(d) { return d.x; }), 
+	 			d3.max(total_data, function(d) { return d.x; })])
+	 		.range([30, 485]);
 
  		let y = d3.scaleLinear()
             //.domain([d3.min(data, function(d) { return d.y; }), 
             .domain([d3.max(total_data, function(d) { return d.y; }), 0])
             .range([0, 300]);
 
-            let lineFunction = d3.line()
-            .x(function(d) { return x(d.x); })
-            .y(function(d) { return y(d.y); })
-            .curve(d3.curveLinear);
+        let lineFunction = d3.line()
+	        .x(function(d) { return x(d.x); })
+	        .y(function(d) { return y(d.y); })
+	        .curve(d3.curveLinear);
 
-            var x_axis = d3.axisBottom().scale(x);
-            var y_axis = d3.axisLeft().scale(y);
+        var x_axis = d3.axisBottom().scale(x);
+        var y_axis = d3.axisLeft().scale(y);
 
-            this.svg.append("g").attr("transform", "translate(0, 300)").call(x_axis);
-            this.svg.append("g").attr("transform", "translate(30, 0)").call(y_axis);
+        this.svg.append("g").attr("transform", "translate(0, 300)").call(x_axis);
+        this.svg.append("g").attr("transform", "translate(30, 0)").call(y_axis);
 
-            this.svg.append("text")
-            .attr("x", 250)             
-            .attr("y", -20)
-            .attr("text-anchor", "middle")  
-            .style("font-size", "16px") 
-            .style("text-decoration", "underline")  
-            .text("Time of Day vs Crimes Committed");
+        this.svg.append("text")
+	        .attr("x", 250)             
+	        .attr("y", -20)
+	        .attr("text-anchor", "middle")  
+	        .style("font-size", "16px") 
+	        .style("text-decoration", "underline")  
+	        .text("Time of Day vs Crimes Committed");
 
 		// x-axis label
 		this.svg.append("text")
-		.attr("x", 250)             
-		.attr("y", 330)
-		.attr("text-anchor", "middle")  
-		.style("font-size", "12px") 
-		.text("Hour of the Day");
+			.attr("x", 250)             
+			.attr("y", 330)
+			.attr("text-anchor", "middle")  
+			.style("font-size", "12px") 
+			.text("Hour of the Day");
 
 		// y-axis label
 		this.svg.append("text")
-		.attr("x", -150)             
-		.attr("y", 0)
-		.attr("text-anchor", "middle")  
-		.style("font-size", "12px") 
-		.attr("transform", "rotate(-90)")
-		.text("Number of Crimes Committed");
+			.attr("x", -150)             
+			.attr("y", 0)
+			.attr("text-anchor", "middle")  
+			.style("font-size", "12px") 
+			.attr("transform", "rotate(-90)")
+			.text("Number of Crimes Committed");
 
 		let felGraph = this.svg.append("path").attr("d", lineFunction(fel_data))
-		.attr("stroke", "red")
-		.attr("stroke-width", 2.5)
-		.attr("fill", "none");
+			.attr("stroke", "red")
+			.attr("stroke-width", 2.5)
+			.attr("fill", "none");
 
 		this.svg.append("path").attr("d", lineFunction(mis_data))
-		.attr("stroke", "orange")
-		.attr("stroke-width", 2.5)
-		.attr("fill", "none");
+			.attr("stroke", "orange")
+			.attr("stroke-width", 2.5)
+			.attr("fill", "none");
 
 		this.svg.append("path").attr("d", lineFunction(vio_data))
-		.attr("stroke", "yellow")
-		.attr("stroke-width", 2.5)
-		.attr("fill", "none");
+			.attr("stroke", "yellow")
+			.attr("stroke-width", 2.5)
+			.attr("fill", "none");
 
 		this.svg.append("path").attr("d", lineFunction(total_data))
-		.attr("stroke", "black")
-		.attr("stroke-width", 2.5)
-		.attr("fill", "none");
+			.attr("stroke", "black")
+			.attr("stroke-width", 2.5)
+			.attr("fill", "none");
 	}
 }
 
+class BarPlot {
+ 	/* your code here */
+ 	constructor(id, counts) {
+ 		this.svg = d3.select("#" + id);
+ 		let data = new Array();
+
+
+ 		for (var obj in counts) {
+ 			data.push({
+ 				"name": obj,
+ 				"value": counts[obj],
+ 			});
+ 		}
+
+ 		data.sort((a, b) => b.value - a.value)
+
+ 		let height = 250 / data.length;
+ 		console.log(height - 3);
+
+ 		for (let i in data) {
+ 			data[i]["i"] = height * i;
+ 		}
+
+		let x = d3.scaleLinear()
+	 		.domain([0, d3.max(data, function(d) { return d.value; })])
+	 		.range([175, 500]);
+
+ 		let y = d3.scaleLinear()
+            //.domain([d3.min(data, function(d) { return d.y; }), 
+            .domain([d3.max(data, function(d) { return d.value; }), 0])
+            .range([50, 300]);
+
+ 		this.svg.append("g")
+			.attr("fill", "steelblue")
+			.selectAll("rect").data(data).enter().append("rect")
+			.attr("x", d => 125)
+			.attr("y", d => d.i + 20)
+			.attr("height", height - 3)
+			.attr("width", d => x(d.value) - x(0));
+
+		this.svg.selectAll("text").data(data).enter().append("text")
+	        .attr("x", 0)             
+	        .attr("y", function (d) {
+                return d.i + ((height - 3) / 2) + 22;
+            })
+	        .attr("text-anchor", "left")  
+	        .style("font-size", "6px") 
+	        .text(function(d) { return d.name });
+
+	    var x_axis = d3.axisBottom().scale(x);
+        
+        this.svg.append("g").attr("transform", "translate(-50, 270)").call(x_axis);
+
+        this.svg.append("text")
+	        .attr("x", 300)             
+	        .attr("y", 10)
+	        .attr("text-anchor", "middle")  
+	        .style("font-size", "13px") 
+	        .style("text-decoration", "underline")  
+	        .text("Frequency of Crimes Committed");
+
+		// x-axis label
+		this.svg.append("text")
+			.attr("x", 300)             
+			.attr("y", 297)
+			.attr("text-anchor", "middle")  
+			.style("font-size", "11px") 
+			.text("Number of Crimes");
+	}
+}
 
 function getCSVData() {
 	let felonies = L.layerGroup();
@@ -150,8 +221,16 @@ function getCSVData() {
 		let fel_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
 		let vio_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
 		let mis_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
+		let counts = {};
 		data.forEach(function(d) {
 			d.Date = new Date(d.Date);
+
+			// update crime counts
+			if (!(d.OFNS_DESC in counts)) {
+				counts[d.OFNS_DESC] = 0;
+			}
+			counts[d.OFNS_DESC]++;
+
 			let marker = L.marker([+d.Latitude, +d.Longitude], { icon: toColor(d.LAW_CAT_CD) }).bindPopup(d.OFNS_DESC);
 			if (d.LAW_CAT_CD == "FELONY") {
 				marker.addTo(felonies);
@@ -172,6 +251,7 @@ function getCSVData() {
 		}); 
 
 		const plot = new ScatterPlot("plot", fel_counts, vio_counts, mis_counts);
+		const plot2 = new BarPlot("barplot", counts);
 	});
 	return [felonies, violations, misdemeanors, morning, evening];
 }
@@ -188,7 +268,6 @@ function addLayer(layer, layers, mymap) {
 	}
 	for (let i = 0; i < removed.length; i++) {
 		let l = removed[i];
-		console.log(l);
 		mymap.removeLayer(l);
 	}	
 }
@@ -239,7 +318,6 @@ function plotData(data) {
 	}
 
 	let layers = [felonies, violations, misdemeanors, morning, evening];
-	console.log(layers);
 
 	addListener("felonies", felonies, layers, mymap);
 	addListener("violations", violations, layers, mymap);
