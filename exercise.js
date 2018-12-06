@@ -156,7 +156,6 @@ class BarPlot {
  		data.sort((a, b) => b.value - a.value)
 
  		let height = 250 / data.length;
- 		console.log(height - 3);
 
  		for (let i in data) {
  			data[i]["i"] = height * i;
@@ -210,32 +209,40 @@ class BarPlot {
 	}
 }
 
-function getCSVData() {
+function getCSVData(date, month, year) {
 	let felonies = L.layerGroup();
 	let violations = L.layerGroup();
 	let misdemeanors = L.layerGroup();
 	let morning = L.layerGroup();
 	let evening = L.layerGroup();
 
-	d3.csv("felonies.csv").then(function(data) {
+	//d3.csv("felonies.csv").then(function(data) {
+	d3.csv("https://data.cityofnewyork.us/resource/9s4h-37hy.csv?"
+		  + "$select=cmplnt_fr_dt,cmplnt_fr_tm,law_cat_cd,ofns_desc,latitude,longitude,boro_nm"
+		  + "&$where=date_extract_y(cmplnt_fr_dt)=" + year
+		  + "and date_extract_m(cmplnt_fr_dt)=" + month
+		  + "and date_extract_d(cmplnt_fr_dt)=" + date
+		  + "&$limit=2000"
+		  //+ "&$$app_token=8QC85EOlIUQSUNi4lWPQvssHx"
+		  ).then(function (data) {
 		let fel_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
 		let vio_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
 		let mis_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
 		let counts = {};
+
 		data.forEach(function(d) {
-			d.Date = new Date(d.Date);
-
+			d.Date = new Date(d.cmplnt_fr_dt.substring(0, 11) + d.cmplnt_fr_tm)
 			// update crime counts
-			if (!(d.OFNS_DESC in counts)) {
-				counts[d.OFNS_DESC] = 0;
+			if (!(d.ofns_desc in counts)) {
+				counts[d.ofns_desc] = 0;
 			}
-			counts[d.OFNS_DESC]++;
+			counts[d.ofns_desc]++;
 
-			let marker = L.marker([+d.Latitude, +d.Longitude], { icon: toColor(d.LAW_CAT_CD) }).bindPopup(d.OFNS_DESC);
-			if (d.LAW_CAT_CD == "FELONY") {
+			let marker = L.marker([+d.latitude, +d.longitude], { icon: toColor(d.law_cat_cd) }).bindPopup(d.ofns_desc);
+			if (d.law_cat_cd == "FELONY") {
 				marker.addTo(felonies);
 				fel_counts[d.Date.getHours()]++;
-			} else if (d.LAW_CAT_CD == "MISDEMEANOR") {
+			} else if (d.law_cat_cd == "MISDEMEANOR") {
 				marker.addTo(misdemeanors);
 				mis_counts[d.Date.getHours()]++;
 			} else {
@@ -284,21 +291,12 @@ function addListener(id, layer, layers, mymap) {
 	})
 }
 
-function plotData(data) {
+function plotData(data, mymap) {
 	let felonies = data[0];
 	let violations = data[1];
 	let misdemeanors = data[2];
 	let morning = data[3];
 	let evening = data[4];
-
-	var mymap = L.map('mapid').setView([40.7128, -73.9], 12);
-
-	L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-		maxZoom: 18,
-		id: 'mapbox.streets',
-		accessToken: 'pk.eyJ1IjoiYmdyYXNzeSIsImEiOiJjam90M283enMwM2d1M3ZvZGRweXhuZXdwIn0.OOZ5ruMJLs3hrovEkbYcjg'
-	}).addTo(mymap);
 
 	felonies.addTo(mymap);
 	violations.addTo(mymap);
@@ -327,7 +325,37 @@ function plotData(data) {
 }
 
 whenDocumentLoaded(() => {
-	let data = getCSVData();
-	plotData(data);
+	var mymap = L.map('mapid').setView([40.7128, -73.9], 12);
+
+	L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+		maxZoom: 18,
+		id: 'mapbox.streets',
+		accessToken: 'pk.eyJ1IjoiYmdyYXNzeSIsImEiOiJjam90M283enMwM2d1M3ZvZGRweXhuZXdwIn0.OOZ5ruMJLs3hrovEkbYcjg'
+	}).addTo(mymap);
+
+	const date = document.getElementById("date")
+
+	date.addEventListener('change', (event) => {
+	    let inputDate = new Date(event.target.value);
+	    let year = inputDate.getFullYear();
+	    if (year >= 2006 && year <= 2017) {
+	    	mymap.eachLayer(function (layer) {
+			    mymap.removeLayer(layer);
+			});
+			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+				attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+				maxZoom: 18,
+				id: 'mapbox.streets',
+				accessToken: 'pk.eyJ1IjoiYmdyYXNzeSIsImEiOiJjam90M283enMwM2d1M3ZvZGRweXhuZXdwIn0.OOZ5ruMJLs3hrovEkbYcjg'
+			}).addTo(mymap);
+	    	let data = getCSVData(inputDate.getDate(), inputDate.getMonth() + 1, year);
+	    	plotData(data, mymap);
+	    }
+	    //plotData(data, mymap);
+	});
+
+	let data = getCSVData(5, 12, 2013);
+	plotData(data, mymap);
 	// plot object is global, you can inspect it in the dev-console
 });
