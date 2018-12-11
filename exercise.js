@@ -15,7 +15,7 @@
 		// `DOMContentLoaded` already fired
 		action();
 	}
-}
+} 
 
 var redIcon = new L.Icon({
 	iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -58,6 +58,9 @@ function toColor(str) {
  	/* your code here */
  	constructor(id, fel_counts, vio_counts, mis_counts) {
  		this.svg = d3.select("#" + id);
+
+ 		// make sure that svg is clear
+ 		svg.selectAll("*").remove();
 
  		let fel_data = new Array();
  		let vio_data = new Array();
@@ -143,6 +146,8 @@ class BarPlot {
  	/* your code here */
  	constructor(id, counts) {
  		this.svg = d3.select("#" + id);
+ 		// make sure that svg is clear
+ 		svg.selectAll("*").remove();
  		let data = new Array();
 
 
@@ -210,20 +215,19 @@ class BarPlot {
 }
 
 function getCSVData(date, month, year) {
-	let felonies = L.layerGroup();
-	let violations = L.layerGroup();
-	let misdemeanors = L.layerGroup();
-	let morning = L.layerGroup();
-	let evening = L.layerGroup();
+	let layers = new Array();
+	for (let i = 0; i < 72; i++) {
+		layers.push(L.layerGroup());
+	}
 
 	//d3.csv("felonies.csv").then(function(data) {
-	d3.csv("https://data.cityofnewyork.us/resource/9s4h-37hy.csv?"
+	d3.json("https://data.cityofnewyork.us/resource/9s4h-37hy.json?"
 		  + "$select=cmplnt_fr_dt,cmplnt_fr_tm,law_cat_cd,ofns_desc,latitude,longitude,boro_nm"
 		  + "&$where=date_extract_y(cmplnt_fr_dt)=" + year
 		  + "and date_extract_m(cmplnt_fr_dt)=" + month
 		  + "and date_extract_d(cmplnt_fr_dt)=" + date
 		  + "&$limit=2000"
-		  //+ "&$$app_token=8QC85EOlIUQSUNi4lWPQvssHx"
+		  + "&$$app_token=8QC85EOlIUQSUNi4lWPQvssHx"
 		  ).then(function (data) {
 		let fel_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
 		let vio_counts = Array.apply(null, Array(24)).map(function (x, i) { return 0; });
@@ -240,88 +244,128 @@ function getCSVData(date, month, year) {
 
 			let marker = L.marker([+d.latitude, +d.longitude], { icon: toColor(d.law_cat_cd) }).bindPopup(d.ofns_desc);
 			if (d.law_cat_cd == "FELONY") {
-				marker.addTo(felonies);
+				marker.addTo(layers[d.Date.getHours()]);
 				fel_counts[d.Date.getHours()]++;
 			} else if (d.law_cat_cd == "MISDEMEANOR") {
-				marker.addTo(misdemeanors);
+				marker.addTo(layers[24 + d.Date.getHours()]);
 				mis_counts[d.Date.getHours()]++;
 			} else {
-				marker.addTo(violations);
+				marker.addTo(layers[48 + d.Date.getHours()]);
 				vio_counts[d.Date.getHours()]++;
-			}
-
-			if (d.Date.getHours() <= 12) {
-				marker.addTo(morning);
-			} else {
-				marker.addTo(evening);
 			}
 		}); 
 
 		const plot = new ScatterPlot("plot", fel_counts, vio_counts, mis_counts);
 		const plot2 = new BarPlot("barplot", counts);
 	});
-	return [felonies, violations, misdemeanors, morning, evening];
+	return layers;
 }
 
-function addLayer(layer, layers, mymap) {
-	let removed = new Array();
-	mymap.addLayer(layer);
-	for (let i = 0; i < 5; i++) {
-		let l = layers[i];
-		if (l != layer && !mymap.hasLayer(l)) {
-			removed.push(l);
-		}
-		mymap.addLayer(l);
-	}
-	for (let i = 0; i < removed.length; i++) {
-		let l = removed[i];
-		mymap.removeLayer(l);
+function addCrimeLayer(offset, layers, mymap) {
+	for (let i = 0; i < 24; i++) {
+		mymap.addLayer(layers[offset + i]);
 	}	
 }
 
-function addListener(id, layer, layers, mymap) {
+function addTimeLayer(hour, layers, mymap) {
+	for (let i = 0; i < 3; i++) {
+		mymap.addLayer(layers[24 * i + hour]);
+	}
+}
+
+function removeCrimeLayer(offset, layers, mymap) {
+	for (let i = 0; i < 24; i++) {
+		let l = layers[offset + i];
+		if (mymap.hasLayer(l)) {
+			console.log(i);
+			mymap.removeLayer(l);
+		}
+	}
+}
+
+function removeTimeLayer(hour, layers, mymap) {
+	for (let i = 0; i < 3; i++) {
+		let l = layers[24 * i + hour];
+		if (mymap.hasLayer(l)) {
+			mymap.removeLayer(l);
+		}
+	}
+}
+
+function addCrimeListener(id, offset, layers, mymap) {
 	const checkbox = document.getElementById(id)
 
 	checkbox.addEventListener('change', (event) => {
 	  if (event.target.checked) {
-	    addLayer(layer, layers, mymap);
+	    addCrimeLayer(offset, layers, mymap);
 	  } else {
-	    mymap.removeLayer(layer);
+	    removeCrimeLayer(offset, layers, mymap);
 	  }
 	})
 }
 
-function plotData(data, mymap) {
-	let felonies = data[0];
-	let violations = data[1];
-	let misdemeanors = data[2];
-	let morning = data[3];
-	let evening = data[4];
+function addStartListener(start_id, end_id, layers, mymap) {
+	const s = document.getElementById(start_id);
+	const e = document.getElementById(end_id);
 
-	felonies.addTo(mymap);
-	violations.addTo(mymap);
-	misdemeanors.addTo(mymap);
-	morning.addTo(mymap);
-	evening.addTo(mymap);
+	s.addEventListener('change', (event) => {
+	    let start = parseInt(event.target.value);
+	    let oldStart = parseInt(event.target.defaultValue);
+	    let end = parseInt(e.value);
+	    if (start >= 0 && start < 24 && start <= end) {
+			event.target.defaultValue = start;
+		    if (oldStart < start) { // start time moved later
+		    	for (let i = oldStart; i < start; i++) {
+		    		removeTimeLayer(i, layers, mymap);
+		    	}
+		    } else if (start < oldStart) {
+		    	for (let i = oldStart; i > start; i--) {
+		  	    	addTimeLayer(i, layers, mymap);
+		    	}
+		    }
+	    } else {
+	    	event.target.value = oldStart;
+	    }
+	});
+}
 
-	var markers = {
-		"Felonies": felonies,
-		"Misdemeanors": misdemeanors,
-		"Violations": violations
+function addEndListener(start_id, end_id, layers, mymap) {
+	const s = document.getElementById(start_id);
+	const e = document.getElementById(end_id);
+
+	e.addEventListener('change', (event) => {
+	    let end = parseInt(event.target.value);
+	    let oldEnd = parseInt(event.target.defaultValue);
+	    let start = parseInt(s.value);
+	    if (end >= 0 && end < 24 && start <= end) {
+			event.target.defaultValue = end;
+			console.log(end);
+			console.log(oldEnd);
+		    if (oldEnd < end) { // end moved later
+		    	for (let i = oldEnd; i < end; i++) {
+		  	    	addTimeLayer(i, layers, mymap);
+		    	}
+		    } else if (end < oldEnd) {
+		    	for (let i = oldEnd; i > end; i--) {
+		    		removeTimeLayer(i, layers, mymap);
+		    	}
+		    }
+	    } else {
+	    	event.target.value = oldEnd;
+	    }
+	});
+}
+
+function plotData(layers, mymap) {
+	for (let i = 0; i < 72; i++) {
+		layers[i].addTo(mymap);
 	}
 
-	var time = {
-		"Morning": morning,
-		"Evening": evening
-	}
-
-	let layers = [felonies, violations, misdemeanors, morning, evening];
-
-	addListener("felonies", felonies, layers, mymap);
-	addListener("violations", violations, layers, mymap);
-	addListener("misdemeanors", misdemeanors, layers, mymap);
-	addListener("morning", morning, layers, mymap);
-	addListener("evening", evening, layers, mymap);
+	addCrimeListener("felonies", 0, layers, mymap);
+	addCrimeListener("misdemeanors", 24, layers, mymap);
+	addCrimeListener("violations", 48, layers, mymap);
+	addStartListener("start", "end", layers, mymap);
+	addEndListener("start", "end", layers, mymap);	
 }
 
 whenDocumentLoaded(() => {
@@ -334,7 +378,8 @@ whenDocumentLoaded(() => {
 		accessToken: 'pk.eyJ1IjoiYmdyYXNzeSIsImEiOiJjam90M283enMwM2d1M3ZvZGRweXhuZXdwIn0.OOZ5ruMJLs3hrovEkbYcjg'
 	}).addTo(mymap);
 
-	const date = document.getElementById("date")
+	const date = document.getElementById("date");
+
 
 	date.addEventListener('change', (event) => {
 	    let inputDate = new Date(event.target.value);
