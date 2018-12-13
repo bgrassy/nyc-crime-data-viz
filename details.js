@@ -1,5 +1,6 @@
-d3.select(".dropbutton")
+// Dropdown menu functionality
+d3.selectAll(".dropbutton")
 	.on("click", function() {
-		d3.select(".dropdown").classed("show", 
-			d3.select(".dropdown").classed("show") ? false : true);
+		drop = d3.select(this.parentNode).selectAll(".dropdown")
+		drop.classed("show", drop.classed("show") ? false : true);
 	});
