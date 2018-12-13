@@ -15,6 +15,10 @@ Make the document fill the whole viewport, this overrides any weird defaults tha
 	font-style: italic;
 }
 
+#right {
+	text-align: right;
+}
+
 .container {
 	align-content: center;
 }
@@ -24,10 +28,13 @@ Make the document fill the whole viewport, this overrides any weird defaults tha
 }
 
 .dropdown {
+	display: block;
 	position: absolute;
-	background: #ffffff; 
+	background: #ffffff;
+	right: 0px; 
 	opacity: 0.9;
 	border-radius: 10px;
+	float: right;
 }
 
 .dropdown p {
