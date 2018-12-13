@@ -2,63 +2,74 @@
 <meta charset="utf-8">
 <html>
 <head>
-<title>NYC Crime Data</title>
+  <!-- CSS -->
+  <link rel="stylesheet" href = "css/normalize.css" />
+  <link rel="stylesheet" href = "css/skeleton.css" />
+  <link rel="stylesheet" href = "css/custom.css" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"
+  integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+  crossorigin=""/>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"
+  integrity="sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA=="
+  crossorigin=""></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+
+  <!-- Text -->
+  <title>NYC Crime Data</title>
 </head>
 <body>
-
- <link rel="stylesheet" href = "style.css" />
- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"
-   integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
-   crossorigin=""/>
- <!-- Make sure you put this AFTER Leaflet's CSS -->
- <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"
-   integrity="sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA=="
-   crossorigin=""></script>
- <script src="https://d3js.org/d3.v5.min.js"></script>
- <script src="exercise.js"></script>
-
- <div id="header">
- 	<h1>A Day in the Big Apple: Daily Crime in New York City</h1>
- </div>
- <div id="container"> 
- 	<div id="input">
- 		<ul>
- 			<li>
- 				Felonies: <input type="checkbox" id="felonies" checked="true" />
- 			</li>
-	 		<li>
-	 			Misdemeanors: <input type="checkbox" id="misdemeanors" checked="true" />
-	 		</li>
-	 		<li>
-	 			Violations: <input type="checkbox" id="violations" checked="true" />
-	 		</li>
-	 		<li>
-	 			Morning: <input type="checkbox" id="morning" checked="true" />
-	 		</li>
-	 		<li>
-	 			Evening: <input type="checkbox" id="evening" checked="true" />
-	 		</li>
-	 		<li>
-	 			<input type="date" id="date" min="2006-01-01" max="2017-12-31" value="2013-12-05">
-	 		</li>
-	 		<li>
-	 			<input type="text" id="start" value=0 defaultValue=0>
-	 		</li>
-	 		<li>
-	 			<input type="text" id="end" value=23 defaultValue=23>
-	 		</li>
-		</ul>
-	</div>
- 	<div id="mapid" style="height:500px"> </div>
- </div>
-
- <div id="plot_div">
- 	<svg id="plot" viewBox="-10 -10 500 300"></svg>
- 	<svg id="barplot" viewBox="-10 -10 500 300">
- </div>
-
-
-
-
+  <div class="container"> 
+    <div class="row">
+      <div class="one column">
+        <p>Info</p>
+      </div>
+    </div>
+    <div class="row">
+     <div class="column"> 
+      <div id="header">
+        <h1>A Day in the Big Apple</h1>
+        <h3>Daily Crime in New York City</h3>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="one-half column">
+      Placeholder
+      <!-- <input type="date" id="date" min="2006-01-01" max="2017-12-31" value="2013-12-05">
+      <input type="text" id="start" value=0 defaultValue=0>
+      <input type="text" id="end" value=23 defaultValue=23>
+      <div class="input">
+      </div> -->
+    </div>
+    <div class="one-half column">
+      <button class="dropbutton">Filter
+      </button>
+      <div class="dropdown">
+        <p>Felonies: <input type="checkbox" id="felonies" checked="true" /></p>
+        <p>Misdemeanors: <input type="checkbox" id="misdemeanors" checked="true" /></p>
+        <p>Violations: <input type="checkbox" id="violations" checked="true" /></p>
+        <p>Evening: <input type="checkbox" id="evening" checked="true" /></p>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="column">
+      <div id="mapid" > </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="column">
+      <div id="plot_div">
+        <svg id="plot" viewBox="-10 -10 500 300"></svg>
+        <svg id="barplot" viewBox="-10 -10 500 300"></svg>
+      </div>
+    </div>
+  </div>
+  <script src="exercise.js"></script>
+  <script src="details.js"></script>
 </body>
 </html>
