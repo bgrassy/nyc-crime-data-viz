@@ -1,0 +1,42 @@
+/*
+Make the document fill the whole viewport, this overrides any weird defaults that browsers might have.
+*/
+#header {
+	text-align: center;
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+#header h1 {
+	font-weight: bold;
+}
+
+#header h3 {
+	font-style: italic;
+}
+
+.container {
+	align-content: center;
+}
+
+.dropbutton {
+	position: relative;
+}
+
+.dropdown {
+	position: absolute;
+	background: #ffffff; 
+	opacity: 0.9;
+	border-radius: 10px;
+}
+
+.dropdown p {
+	margin: 1em;
+}
+
+#mapid {
+	height: 600px;
+	z-index: -1;
+}
+
+.show {display: none;}
