@@ -60,7 +60,7 @@ function toColor(str) {
  		this.svg = d3.select("#" + id);
 
  		// make sure that svg is clear
- 		svg.selectAll("*").remove();
+ 		this.svg.selectAll("*").remove();
 
  		let fel_data = new Array();
  		let vio_data = new Array();
@@ -146,8 +146,10 @@ class BarPlot {
  	/* your code here */
  	constructor(id, counts) {
  		this.svg = d3.select("#" + id);
+
  		// make sure that svg is clear
- 		svg.selectAll("*").remove();
+ 		this.svg.selectAll("*").remove();
+
  		let data = new Array();
 
 
@@ -159,6 +161,7 @@ class BarPlot {
  		}
 
  		data.sort((a, b) => b.value - a.value)
+ 		data = data.slice(0, Math.min(15, data.length));
 
  		let height = 250 / data.length;
 
@@ -168,7 +171,7 @@ class BarPlot {
 
 		let x = d3.scaleLinear()
 	 		.domain([0, d3.max(data, function(d) { return d.value; })])
-	 		.range([175, 500]);
+	 		.range([200, 500]);
 
  		let y = d3.scaleLinear()
             //.domain([d3.min(data, function(d) { return d.y; }), 
@@ -178,7 +181,7 @@ class BarPlot {
  		this.svg.append("g")
 			.attr("fill", "steelblue")
 			.selectAll("rect").data(data).enter().append("rect")
-			.attr("x", d => 125)
+			.attr("x", d => 150)
 			.attr("y", d => d.i + 20)
 			.attr("height", height - 3)
 			.attr("width", d => x(d.value) - x(0));
@@ -189,7 +192,7 @@ class BarPlot {
                 return d.i + ((height - 3) / 2) + 22;
             })
 	        .attr("text-anchor", "left")  
-	        .style("font-size", "6px") 
+	        .style("font-size", "8px") 
 	        .text(function(d) { return d.name });
 
 	    var x_axis = d3.axisBottom().scale(x);
